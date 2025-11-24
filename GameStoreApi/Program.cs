@@ -3,13 +3,16 @@ using GameStoreApi.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("GameStore");
-builder.Services.AddSqlite<GameStoreContext>(connectionString);
+builder.AddServiceDefaults();
+builder.AddNpgsqlDbContext<GameStoreContext>("GameStore");
+builder.AddRedisDistributedCache("redis");
 
 var app = builder.Build();
 
+app.MapDefaultEndpoints();
 app.MapGenresEndpoints();
 app.MapGamesEndpoints();
+
 await app.MigrateDb();
 
 app.Run();

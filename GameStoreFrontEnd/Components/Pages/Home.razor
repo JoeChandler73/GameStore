@@ -28,7 +28,8 @@ else
             <th></th>
         </thead>
         <tbody>
-            @foreach (var game in games){
+            @foreach (var game in games)
+            {
                 <tr>
                     <td>@game.Id</td>
                     <td>@game.Name</td>
@@ -52,7 +53,8 @@ else
     </table>
 }
 
-@code{
+@code
+{
     private GameSummary[]? games;
 
     protected override async Task OnInitializedAsync()
