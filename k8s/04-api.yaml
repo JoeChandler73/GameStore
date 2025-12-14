@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: gamestore
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_HTTP_PORTS: "8080"
+  ASPNETCORE_HTTPS_PORTS: "8081"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gamestoreapi
+  namespace: gamestore
+  labels:
+    app: gamestoreapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gamestoreapi
+  template:
+    metadata:
+      labels:
+        app: gamestoreapi
+    spec:
+      containers:
+      - name: gamestoreapi
+        image: docker.io/joechandler73/gamestoreapi:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8081
+          name: https
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: api-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ASPNETCORE_HTTP_PORTS
+          valueFrom:
+            configMapKeyRef:
+              name: api-config
+              key: ASPNETCORE_HTTP_PORTS
+        - name: ConnectionStrings__GameStore
+          value: "Host=postgres-service;Port=5432;Database=GameStore;Username=postgres;Password=(Aea{AkeWf*WYwk(C96}-Y"
+        - name: ConnectionStrings__Redis
+          value: "redis-service:6379"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gamestoreapi-service
+  namespace: gamestore
+  labels:
+    app: gamestoreapi
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: gamestoreapi

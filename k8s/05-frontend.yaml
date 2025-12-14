@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: gamestore
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ASPNETCORE_HTTP_PORTS: "8080"
+  ASPNETCORE_HTTPS_PORTS: "8081"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gamestorefrontend
+  namespace: gamestore
+  labels:
+    app: gamestorefrontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gamestorefrontend
+  template:
+    metadata:
+      labels:
+        app: gamestorefrontend
+    spec:
+      containers:
+      - name: gamestorefrontend
+        image: docker.io/joechandler73/gamestorefrontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8081
+          name: https
+          protocol: TCP
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-config
+              key: ASPNETCORE_ENVIRONMENT
+        - name: ASPNETCORE_HTTP_PORTS
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-config
+              key: ASPNETCORE_HTTP_PORTS
+        - name: gamestoreapi__http
+          value: "http://gamestoreapi-service"
+        - name: gamestoreapi__https
+          value: "https://gamestoreapi-service"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gamestorefrontend-service
+  namespace: gamestore
+  labels:
+    app: gamestorefrontend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+    nodePort: 30080
+  selector:
+    app: gamestorefrontend

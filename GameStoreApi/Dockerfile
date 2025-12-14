@@ -1,0 +1,32 @@
+
+# GameStoreApi/Dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Copy csproj files and restore dependencies
+COPY ["GameStoreApi/GameStoreApi.csproj", "GameStoreApi/"]
+COPY ["GameStoreServiceDefaults/GameStoreServiceDefaults.csproj", "GameStoreServiceDefaults/"]
+RUN dotnet restore "GameStoreApi/GameStoreApi.csproj"
+
+# Copy everything else and build
+COPY . .
+WORKDIR "/src/GameStoreApi"
+RUN dotnet build "GameStoreApi.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "GameStoreApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "GameStoreApi.dll"]
+
+# run from the root GameStore directory
+# docker buildx create --use --name multi-arch
+# docker buildx build --platform linux/amd64,linux/arm64 --push -t joechandler73/gamestoreapi -f GameStoreApi/Dockerfile .
+# docker buildx rm multi-arch
