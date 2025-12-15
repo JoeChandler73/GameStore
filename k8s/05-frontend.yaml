@@ -16,7 +16,7 @@ metadata:
   labels:
     app: gamestorefrontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: gamestorefrontend
@@ -47,10 +47,10 @@ spec:
             configMapKeyRef:
               name: frontend-config
               key: ASPNETCORE_HTTP_PORTS
-        - name: gamestoreapi__http
+        - name: services__gamestoreapi__http__0
           value: "http://gamestoreapi-service"
-        - name: gamestoreapi__https
-          value: "https://gamestoreapi-service"
+        #- name: services__gamestoreapi__https__0
+        #  value: "https://gamestoreapi-service"
         resources:
           requests:
             memory: "256Mi"

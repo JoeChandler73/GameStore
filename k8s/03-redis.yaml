@@ -38,6 +38,12 @@ spec:
         - redis-server
         - --appendonly
         - "yes"
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: REDIS_PASSWORD
         volumeMounts:
         - name: redis-storage
           mountPath: /data

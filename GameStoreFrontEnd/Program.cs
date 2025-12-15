@@ -10,10 +10,10 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddHttpClient<GamesClient>(
-    client => client.BaseAddress = new Uri(new("https+http://gamestore-api")));
+    client => client.BaseAddress = new Uri(new("https+http://gamestoreapi")));
 
 builder.Services.AddHttpClient<GenresClient>(
-    client => client.BaseAddress = new Uri(new("https+http://gamestore-api")));
+    client => client.BaseAddress = new Uri(new("https+http://gamestoreapi")));
 
 var app = builder.Build();
 
